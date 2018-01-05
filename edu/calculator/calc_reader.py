@@ -1,11 +1,6 @@
-"""该模块提供了一个用于解析计算器表达式的parser。
+# -*- coding: utf-8 -*-
 
-The __repr__ method of a Scheme value will return a Python expression that
-would be evaluated to the value, where possible.
-
-The __str__ method of a Scheme value will return a Scheme expression that
-would be read to the value, where possible.
-"""
+"""该模块提供了一个用于解析计算器表达式的parser。"""
 
 from edu.calculator.calc_tokens import tokenize_lines, DELIMITERS
 from edu.calculator.calc_buffer import Buffer, InputReader, LineReader
