@@ -9,6 +9,11 @@ def pair(a, b):
     return [a, b]
 
 
+def is_pair(p):
+    """判断p是否pair对象。"""
+    return isinstance(p, list) and len(p) == 2
+
+
 def first(pair_object):
     """获取pair对象的first部分。"""
     return pair_object[0]
@@ -31,13 +36,28 @@ def make_list(iterator):
         return nil
 
 
-def print_list(plist):
-    """打印链表"""
+# 输出不带最外层括号的列表字符串
+# 例如：1 2 3
+def __list_to_string(plist):
     if plist == nil:
-        print()
+        return ''
     else:
-        print(str(first(plist)), end=' ')
-        print_list(second(plist))
+        item = first(plist)
+        if is_pair(item):
+            item_str = list_to_string(item)
+        else:
+            item_str = str(item)
+        if second(plist) != nil:
+            return item_str + ' ' + __list_to_string(second(plist))
+        else:
+            return item_str
+
+
+def list_to_string(plist):
+    """list转换为s表达式格式的字符串。
+
+    示例输出：(1 2 3)"""
+    return '(' + __list_to_string(plist) + ')'
 
 
 def map_list(fn, plist):
