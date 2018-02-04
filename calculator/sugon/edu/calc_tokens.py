@@ -51,18 +51,18 @@ def next_candidate_token(line, k):
             if c == '[':
                 c = '('
             return c, k+1
-        elif c == '#':  # Boolean values #t and #f
+        elif c == '#':  # 布尔值：#t、#f
             return line[k:k+2], min(k+2, len(line))
-        elif c == ',':  # Unquote; check for @
+        elif c == ',':  # ,@
             if k+1 < len(line) and line[k+1] == '@':
                 return ',@', k+2
             return c, k+1
         elif c in _STRING_DELIMS:
-            if k+1 < len(line) and line[k+1] == c:  # No triple quotes in Scheme
+            if k+1 < len(line) and line[k+1] == c:
                 return c+c, k+2
             line_bytes = (bytes(line[k:], encoding='utf-8'),)
             gen = tokenize.tokenize(iter(line_bytes).__next__)
-            next(gen)  # Throw away encoding token
+            next(gen)
             token = next(gen)
             if token.type != tokenize.STRING:
                 raise ValueError("invalid string: {0}".format(token.string))
