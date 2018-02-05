@@ -65,7 +65,7 @@ def next_candidate_token(line, k):
             next(gen)
             token = next(gen)
             if token.type != tokenize.STRING:
-                raise ValueError("invalid string: {0}".format(token.string))
+                raise ValueError("无效的字符串: {0}".format(token.string))
             return token.string, token.end[1]+k
         else:
             j = k
@@ -107,11 +107,11 @@ def tokenize_line(line):
                 if valid_symbol(text):
                     result.append(text.lower())
                 else:
-                    raise ValueError("invalid numeral or symbol: {0}".format(text))
+                    raise ValueError("无效的数字或符号: {0}".format(text))
         elif text[0] in _STRING_DELIMS:
             result.append(text)
         else:
-            print("warning: invalid token: {0}".format(text), file=sys.stderr)
+            print("warning: 无效的token: {0}".format(text), file=sys.stderr)
             print("    ", line, file=sys.stderr)
             print(" " * (i+3), "^", file=sys.stderr)
         text, i = next_candidate_token(line, i)
