@@ -2,8 +2,8 @@
 
 """该模块提供了一个用于解析计算器表达式的parser。"""
 
-from edu.calculator.calc_tokens import tokenize_lines, DELIMITERS
-from edu.calculator.calc_buffer import Buffer, InputReader, LineReader
+from sugon.edu.calc_tokens import tokenize_lines, DELIMITERS
+from sugon.edu.calc_buffer import Buffer, InputReader, LineReader
 
 
 class Nil:
@@ -97,11 +97,12 @@ def scheme_read(src_buf):
         raise EOFError
     val = src_buf.remove_front()  # 取得首个token
     if val == 'nil':
-        '*** 在这里补充你的代码 ***'
         return nil
     elif val == '(':
+        # *** 问题1开始 ***
         '*** 在这里补充你的代码 ***'
         return read_tail(src_buf)
+        # *** 问题1结束 ***
     elif val not in DELIMITERS:
         return val
     else:
