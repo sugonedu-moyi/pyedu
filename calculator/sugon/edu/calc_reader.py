@@ -122,14 +122,18 @@ def read_tail(src_buf):
         if src_buf.current() is None:
             raise SyntaxError('不完整的表达式')
         elif src_buf.current() == ')':
+            # *** 问题2开始 ***
             '*** 在这里补充你的代码 ***'
             src_buf.remove_front()
             return nil
+            # *** 问题2结束 ***
         else:
+            # *** 问题3开始 ***
             '*** 在这里补充你的代码 ***'
             first = scheme_read(src_buf)
             second = read_tail(src_buf)
             return Pair(first, second)
+            # *** 问题3结束 ***
     except EOFError:
         raise SyntaxError('不完整的表达式')
 
