@@ -33,7 +33,7 @@ from sugon.edu.calc_reader import Pair, nil, scheme_read, buffer_input
 def calc_eval(exp):
     """求值计算器表达式exp。
 
-    调用示例：
+    示例：
     >>> calc_eval(as_scheme_list('+', 2, as_scheme_list('*', 4, 6)))
     26
     >>> calc_eval(as_scheme_list('+', 2, as_scheme_list('/', 40, 5)))
@@ -42,15 +42,21 @@ def calc_eval(exp):
     if type(exp) in (int, float):
         return simplify(exp)
     elif isinstance(exp, Pair):
+        arguments = None
+        # *** 问题4开始 ***
+        '*** 在这里补充你的代码 ***'
         arguments = exp.second.map(calc_eval)
-        return simplify(calc_apply(exp.first, arguments))
+        # *** 问题4结束 ***
+        value = calc_apply(exp.first, arguments)
+        return simplify(value)
     else:
         raise TypeError(str(exp) + ' 不是一个数字或可调用表达式')
 
 
 def calc_apply(operator, args):
-    """Apply the named operator to a list of args.
+    """在args参数列表上应用operator操作符。
 
+    示例：
     >>> calc_apply('+', as_scheme_list(1, 2, 3))
     6
     >>> calc_apply('-', as_scheme_list(10, 1, 2, 3))
@@ -78,7 +84,10 @@ def calc_apply(operator, args):
         else:
             return plist_reduce(sub, args.second, args.first)
     elif operator == '*':
+        # *** 问题5开始 ***
+        '*** 在这里补充你的代码 ***'
         return plist_reduce(mul, args, 1)
+        # *** 问题5结束 ***
     elif operator == '/':
         if len(args) == 0:
             raise TypeError(operator + ' 需要至少一个参数')
