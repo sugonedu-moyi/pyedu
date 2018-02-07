@@ -17,11 +17,9 @@
     > )
     SyntaxError: 不该在此出现的token: )
     > 2.3.4
-    ValueError: 无效的数字: 2.3.4
+    ValueError: 不是一个数字或可调用表达式
     > +
     TypeError: + 不是一个数字或可调用表达式
-    > (/ 5)
-    TypeError: / requires exactly 2 arguments
     > (/ 1 0)
     ZeroDivisionError: division by zero
 """
@@ -137,15 +135,20 @@ def as_scheme_list(*args):
 
 
 def read_eval_print_loop():
-    """运行计算器的 读取-求值-打印 循环。"""
+    """运行计算器的"读取-求值-打印"循环。"""
     while True:
         try:
             src = buffer_input()
-            while src.more_on_line:
+            while src.more_on_line():
                 expression = scheme_read(src)
-                print(calc_eval(expression))
+                value = calc_eval(expression)
+                print(value)
         except (SyntaxError, TypeError, ValueError, ZeroDivisionError) as err:
             print(type(err).__name__ + ':', err)
-        except (KeyboardInterrupt, EOFError):  # <Control>-D, etc.
-            print('Calculation completed.')
+        except (KeyboardInterrupt, EOFError):  # <Control>-D等特殊按键
+            print('计算完毕。')
             return
+
+
+if __name__ == '__main__':
+    read_eval_print_loop()

@@ -143,20 +143,6 @@ def buffer_input(prompt='scm> '):
     return Buffer(tokenize_lines(InputReader(prompt)))
 
 
-def buffer_lines(lines, prompt='scm> ', show_prompt=False):
-    """Return a Buffer instance iterating through LINES."""
-    if show_prompt:
-        input_lines = lines
-    else:
-        input_lines = LineReader(lines, prompt)
-    return Buffer(tokenize_lines(input_lines))
-
-
-def read_line(line):
-    """从单行字符串中读取表达式。"""
-    return scheme_read(Buffer(tokenize_lines([line])))
-
-
 def read_print_loop():
     """处理表达式的读入-打印-循环。"""
     while True:

@@ -86,7 +86,7 @@ class Buffer:
         return s.strip()
 
 
-# readline模块用于访问交互历史
+# 用于访问用户输入历史记录
 try:
     import readline
 except ImportError:
@@ -104,22 +104,4 @@ class InputReader:
         while True:
             yield input(self.prompt)
             self.prompt = ' ' * len(self.prompt)
-
-
-class LineReader:
-    """LineReader是iterable类型， that prints lines after a prompt."""
-    def __init__(self, lines, prompt, comment=";"):
-        self.lines = lines
-        self.prompt = prompt
-        self.comment = comment
-
-    def __iter__(self):
-        while self.lines:
-            line = self.lines.pop(0).strip('\n')
-            if (self.prompt is not None and line != "" and
-                    not line.lstrip().startswith(self.comment)):
-                print(self.prompt + line)
-                self.prompt = ' ' * len(self.prompt)
-            yield line
-        raise EOFError
 
