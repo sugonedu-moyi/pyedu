@@ -2,8 +2,8 @@
 
 """Scheme语言解释器。"""
 
-from scheme_primitives import *
-from scheme_reader import *
+from sugon.edu.scheme_primitives import *
+from sugon.edu.scheme_reader import *
 
 
 def scheme_eval(expr, env):
@@ -15,22 +15,25 @@ def scheme_eval(expr, env):
     >>> scheme_eval(expr, create_global_frame())
     4
     """
-    # 基本数据的求值
+    # 基本表达式的求值
     if scheme_symbolp(expr):
         return env.lookup(expr)
     elif self_evaluating(expr):
         return expr
 
-    # 复合数据的求值
+    # 复合表达式的求值
     if not scheme_listp(expr):
         raise SchemeError('无效的list: {0}'.format(str(expr)))
     first, rest = expr.first, expr.second
-    if scheme_symbolp(first) and first in SPECIAL_FORMS:
+    if scheme_symbolp(first) and first in SPECIAL_FORMS:  # 特殊形式
         return SPECIAL_FORMS[first](rest, env)
-    else:
-        # BEGIN PROBLEM 5
-        "*** YOUR CODE HERE ***"
-        # END PROBLEM 5
+    else:  # 过程调用表达式
+        # *** 问题4开始 ***
+        '*** 在这里补充你的代码 ***'
+        procedure = scheme_eval(first, env)
+        check_procedure(procedure)
+        return procedure.eval_call(rest, env)
+        # *** 问题4结束 ***
 
 
 def self_evaluating(expr):
@@ -67,16 +70,23 @@ class Frame:
 
     def define(self, symbol, value):
         """在frame中绑定符号symbol和值value。"""
-        # *** 问题开始 ***
+        # *** 问题2开始 ***
         '*** 在这里补充你的代码 ***'
-        # *** 问题结束 ***
+        self.bindings[symbol] = value
+        # *** 问题2结束 ***
 
     def lookup(self, symbol):
-        """Return the value bound to SYMBOL. Errors if SYMBOL is not found."""
-        # BEGIN PROBLEM 3
-        "*** YOUR CODE HERE ***"
-        # END PROBLEM 3
-        raise SchemeError('unknown identifier: {0}'.format(symbol))
+        """查找绑定到符号symbol上的值。
+
+        如果找不到符号symbol，抛出SchemeError。"""
+        # *** 问题2开始 ***
+        '*** 在这里补充你的代码 ***'
+        if symbol in self.bindings:
+            return self.bindings[symbol]
+        elif self.parent:
+            return self.parent.lookup(symbol)
+        # *** 问题2结束 ***
+        raise SchemeError('符号未绑定: {0}'.format(symbol))
 
     def make_child_frame(self, formals, vals):
         """创建一个局部的frame，它的parent指向self。
@@ -99,13 +109,21 @@ class Frame:
 
 class Procedure:
     """Scheme过程的基类。"""
-    def eval_call(self, operands, env):
-        """求值参数然后调用函数。
 
-        在环境env中求值参数operands，然后使用求值结果作为参数调用自身函数。"""
-        # BEGIN PROBLEM 5
-        "*** YOUR CODE HERE ***"
-        # END PROBLEM 5
+    def apply(self, args, env):
+        """在参数列表args上应用自身过程，具体功能由子类实现。"""
+        pass
+
+    def eval_call(self, operands, env):
+        """求值参数然后调用自身过程。
+
+        operands: scheme列表。
+        在环境env中求值参数operands，然后使用求值结果作为参数调用自身过程。"""
+        # *** 问题4开始 ***
+        '*** 在这里补充你的代码 ***'
+        args = operands.map(lambda exp: scheme_eval(exp, env))
+        return self.apply(args, env)
+        # *** 问题4结束 ***
 
 
 def scheme_procedurep(x):
@@ -114,9 +132,14 @@ def scheme_procedurep(x):
 
 
 class PrimitiveProcedure(Procedure):
-    """Scheme基本函数。"""
+    """Scheme基本过程。"""
 
     def __init__(self, fn, use_env=False, name='primitive'):
+        """
+        fn: 求值本过程所对应的Python函数
+        use_env: 调用fn是否需要传递env参数
+        name: 过程的名称
+        """
         self.name = name
         self.fn = fn
         self.use_env = use_env
@@ -125,7 +148,7 @@ class PrimitiveProcedure(Procedure):
         return '#[{0}]'.format(self.name)
 
     def apply(self, args, env):
-        """在环境env中应用自身函数，参数args是scheme的list。
+        """在环境env中应用自身过程，参数args是一个Scheme的list。
 
         >>> env = create_global_frame()
         >>> plus = env.bindings['+']
@@ -140,9 +163,16 @@ class PrimitiveProcedure(Procedure):
         while args is not nil:
             python_args.append(args.first)
             args = args.second
-        # BEGIN PROBLEM 4
-        "*** YOUR CODE HERE ***"
-        # END PROBLEM 4
+        # *** 问题3开始 ***
+        '*** 在这里补充你的代码 ***'
+        if self.use_env:
+            python_args.append(env)
+        try:
+            return self.fn(*python_args)
+        except TypeError:
+            raise SchemeError('调用{0}时传递了错误的参数：{1}'.format(
+                self.name, str(args)))
+        # *** 问题3结束 ***
 
 
 class LambdaProcedure(Procedure):
@@ -348,10 +378,12 @@ def check_procedure(procedure):
 # Extra Procedures #
 ####################
 
+
 def scheme_map(fn, lst, env):
     check_type(fn, scheme_procedurep, 0, 'map')
     check_type(lst, scheme_listp, 1, 'map')
-    return lst.map(lambda x: complete_eval(fn.apply(Pair(x, nil), env)))
+    return lst.map(lambda x: fn.apply(Pair(x, nil), env))
+
 
 def scheme_filter(fn, lst, env):
     check_type(fn, scheme_procedurep, 0, 'filter')
@@ -359,7 +391,7 @@ def scheme_filter(fn, lst, env):
     head, current = nil, nil
     while lst is not nil:
         item, lst = lst.first, lst.second
-        if complete_eval(fn.apply(Pair(item, nil), env)):
+        if fn.apply(Pair(item, nil), env):
             if head is nil:
                 head = Pair(item, nil)
                 current = head
@@ -368,15 +400,17 @@ def scheme_filter(fn, lst, env):
                 current = current.second
     return head
 
+
 def scheme_reduce(fn, lst, env):
     check_type(fn, scheme_procedurep, 0, 'reduce')
     check_type(lst, lambda x: x is not nil, 1, 'reduce')
     check_type(lst, scheme_listp, 1, 'reduce')
     value, lst = lst.first, lst.second
     while lst is not nil:
-        value = complete_eval(fn.apply(scheme_list(value, lst.first), env))
+        value = fn.apply(scheme_list(value, lst.first), env)
         lst = lst.second
     return value
+
 
 ################
 # Input/Output #

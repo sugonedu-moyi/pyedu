@@ -5,7 +5,7 @@
 import math
 import operator
 import sys
-from scheme_reader import Pair, nil
+from sugon.edu.scheme_reader import Pair, nil
 
 
 class SchemeError(Exception):
