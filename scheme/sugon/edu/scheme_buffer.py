@@ -105,3 +105,13 @@ class InputReader:
             yield input(self.prompt)
             self.prompt = ' ' * len(self.prompt)
 
+
+class LineReader:
+    def __init__(self, lines):
+        self.lines = lines
+
+    def __iter__(self):
+        while self.lines:
+            line = self.lines.pop(0).strip('\n')
+            yield line
+        raise EOFError

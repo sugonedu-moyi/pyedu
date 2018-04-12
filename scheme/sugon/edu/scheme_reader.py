@@ -3,7 +3,7 @@
 """该模块提供了一个用于解析计算器表达式的parser。"""
 
 from sugon.edu.scheme_tokens import tokenize_lines, DELIMITERS
-from sugon.edu.scheme_buffer import Buffer, InputReader
+from sugon.edu.scheme_buffer import Buffer, InputReader, LineReader
 
 
 class Nil:
@@ -159,6 +159,12 @@ def read_tail(src_buf):
 def buffer_input(prompt='scm> '):
     """返回一个Buffer对象，从用户输入中获取token。"""
     return Buffer(tokenize_lines(InputReader(prompt)))
+
+
+def buffer_lines(lines):
+    """返回一个Buffer对象，从lines中获取token。"""
+    input_lines = LineReader(lines)
+    return Buffer(tokenize_lines(input_lines))
 
 
 def read_line(line):

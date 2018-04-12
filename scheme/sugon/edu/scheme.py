@@ -411,24 +411,16 @@ def scheme_reduce(fn, lst, env):
         lst = lst.second
     return value
 
-
-################
-# Input/Output #
-################
-
-def read_eval_print_loop(next_line, env, interactive=False, quiet=False,
-                         startup=False, load_files=()):
+# 读取-求值-打印 循环
+def read_eval_print_loop(next_buffer, env, interactive=False):
     """Read and evaluate input until an end of file or keyboard interrupt."""
-    if startup:
-        for filename in load_files:
-            scheme_load(filename, True, env)
     while True:
         try:
-            src = next_line()
+            src = next_buffer()
             while src.more_on_line():
                 expression = scheme_read(src)
                 result = scheme_eval(expression, env)
-                if not quiet and result is not None:
+                if result is not None:
                     print(result)
         except (SchemeError, SyntaxError, ValueError, RuntimeError) as err:
             if (isinstance(err, RuntimeError) and
@@ -439,8 +431,6 @@ def read_eval_print_loop(next_line, env, interactive=False, quiet=False,
             else:
                 print('Error:', err)
         except KeyboardInterrupt:  # <Control>-C
-            if not startup:
-                raise
             print()
             print('KeyboardInterrupt')
             if not interactive:
@@ -449,40 +439,6 @@ def read_eval_print_loop(next_line, env, interactive=False, quiet=False,
             print()
             return
 
-def scheme_load(*args):
-    """Load a Scheme source file. ARGS should be of the form (SYM, ENV) or
-    (SYM, QUIET, ENV). The file named SYM is loaded into environment ENV,
-    with verbosity determined by QUIET (default true)."""
-    if not (2 <= len(args) <= 3):
-        expressions = args[:-1]
-        raise SchemeError('"load" given incorrect number of arguments: '
-                          '{0}'.format(len(expressions)))
-    sym = args[0]
-    quiet = args[1] if len(args) > 2 else True
-    env = args[-1]
-    if (scheme_stringp(sym)):
-        sym = eval(sym)
-    check_type(sym, scheme_symbolp, 0, 'load')
-    with scheme_open(sym) as infile:
-        lines = infile.readlines()
-    args = (lines, None) if quiet else (lines,)
-    def next_line():
-        return buffer_lines(*args)
-
-    read_eval_print_loop(next_line, env, quiet=quiet)
-
-def scheme_open(filename):
-    """If either FILENAME or FILENAME.scm is the name of a valid file,
-    return a Python file opened to it. Otherwise, raise an error."""
-    try:
-        return open(filename)
-    except IOError as exc:
-        if filename.endswith('.scm'):
-            raise SchemeError(str(exc))
-    try:
-        return open(filename + '.scm')
-    except IOError as exc:
-        raise SchemeError(str(exc))
 
 def create_global_frame():
     """创建全局环境，其中包含Scheme语言的内置名字。"""
@@ -491,8 +447,6 @@ def create_global_frame():
                PrimitiveProcedure(scheme_eval, True, 'eval'))
     env.define('apply',
                PrimitiveProcedure(scheme_apply, True, 'apply'))
-    env.define('load',
-               PrimitiveProcedure(scheme_load, True, 'load'))
     env.define('procedure?',
                PrimitiveProcedure(scheme_procedurep, False, 'procedure?'))
     env.define('map',
@@ -506,33 +460,23 @@ def create_global_frame():
     return env
 
 
-def run(*argv):
+def run():
     import argparse
-    parser = argparse.ArgumentParser(description='Scheme Interpreter')
-    parser.add_argument('-load', '-i', action='store_true',
-                       help='run file interactively')
+    parser = argparse.ArgumentParser(description='Scheme解释器')
     parser.add_argument('file', nargs='?',
                         type=argparse.FileType('r'), default=None,
-                        help='Scheme file to run')
+                        help='要运行的Scheme文件')
     args = parser.parse_args()
-
-    next_line = buffer_input
-    interactive = True
-    load_files = []
-
     if args.file is not None:
-        if args.load:
-            load_files.append(getattr(args.file, 'name'))
-        else:
-            lines = args.file.readlines()
-            def next_line():
-                return buffer_lines(lines)
-            interactive = False
-
-    read_eval_print_loop(next_line, create_global_frame(), startup=True,
-                         interactive=interactive, load_files=load_files)
+        lines = args.file.readlines()
+        next_buffer = lambda: buffer_lines(lines)
+        interactive = False
+    else:
+        next_buffer = buffer_input
+        interactive = True
+    read_eval_print_loop(next_buffer, create_global_frame(),
+                         interactive=interactive)
 
 
 if __name__ == '__main__':
-    import sys
-    run(sys.argv)
+    run()
