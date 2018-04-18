@@ -23,9 +23,11 @@ def scheme_eval(expr, env):
 
     # 复合表达式的求值
     if not scheme_listp(expr):
-        raise SchemeError('无效的list: {0}'.format(str(expr)))
+        raise SchemeError('无效的复合表达式: {0}'.format(str(expr)))
     first, rest = expr.first, expr.second
-    if scheme_symbolp(first) and first in SPECIAL_FORMS:  # 特殊形式
+    if not scheme_symbolp(first):
+        raise SchemeError('无效的复合表达式: {0}'.format(str(expr)))
+    if first in SPECIAL_FORMS:  # 特殊形式
         return SPECIAL_FORMS[first](rest, env)
     else:  # 过程调用表达式
         # *** 问题4开始 ***
@@ -89,9 +91,10 @@ class Frame:
         raise SchemeError('符号未绑定: {0}'.format(symbol))
 
     def make_child_frame(self, formals, vals):
-        """创建一个局部的frame，它的parent指向self。
+        """创建一个环境frame用于函数调用，它的parent指向self。
 
-        formals: 形参，Scheme list
+        在新建的frame中，将形式参数绑定到对应的值。
+        formals: 形式参数，Scheme list
         vals: 对应的值，Scheme list
 
         例如：
@@ -101,9 +104,17 @@ class Frame:
         <{a: 1, b: 2, c: 3} -> <Global Frame>>
         """
         child = Frame(self)
-        # BEGIN PROBLEM 11
-        "*** YOUR CODE HERE ***"
-        # END PROBLEM 11
+        # *** 问题8开始 ***
+        '*** 在这里补充你的代码 ***'
+        if len(formals) != len(vals):
+            raise SchemeError('形式参数和实际参数值不匹配: \n{1}\n{2}'.format(formals, vals))
+        while formals != nil:
+            name = formals.first
+            val = vals.first
+            child.define(name, val)
+            formals = formals.second
+            vals = vals.second
+        # *** 问题8结束 ***
         return child
 
 
@@ -117,7 +128,7 @@ class Procedure:
     def eval_call(self, operands, env):
         """求值参数然后调用自身过程。
 
-        operands: scheme列表。
+        operands: scheme表达式列表。
         在环境env中求值参数operands，然后使用求值结果作为参数调用自身过程。"""
         # *** 问题4开始 ***
         '*** 在这里补充你的代码 ***'
@@ -217,55 +228,66 @@ def add_primitives(frame, funcs_and_names):
     for name, fn, proc_name in funcs_and_names:
         frame.define(name, PrimitiveProcedure(fn, name=proc_name))
 
-#################
-# Special Forms #
-#################
 
-# Each of the following do_xxx_form functions takes the cdr of a special form as
-# its first argument---a Scheme list representing a special form without the
-# initial identifying symbol (if, lambda, quote, ...). Its second argument is
-# the environment in which the form is to be evaluated.
+# 下面的do_xxx_form系列函数，用于求值各种特殊形式。
+# 函数的第一个参数是一个Scheme列表，列表已经去掉了特殊形式的标识符本身。
+# 例如(define x 5)，传入do_define_form函数的第一个参数，是包含 x 5 两个元素的Scheme列表。
+# 函数的第二个参数是求值的环境。
 
 def do_define_form(expressions, env):
-    """Evaluate a define form."""
+    """求值define特殊形式，返回所定义的符号（symbol）。"""
     check_form(expressions, 2)
     target = expressions.first
     if scheme_symbolp(target):
         check_form(expressions, 2, 2)
-        # BEGIN PROBLEM 6
-        "*** YOUR CODE HERE ***"
-        # END PROBLEM 6
+        # *** 问题5开始 ***
+        '*** 在这里补充你的代码 ***'
+        value_exp = expressions.second.first
+        value = scheme_eval(value_exp, env)
+        env.define(target, value)
+        return target
+        # *** 问题5结束 ***
     elif isinstance(target, Pair) and scheme_symbolp(target.first):
         # BEGIN PROBLEM 10
         "*** YOUR CODE HERE ***"
         # END PROBLEM 10
     else:
-        bad_target = target.first if isinstance(target, Pair) else target
-        raise SchemeError('non-symbol: {0}'.format(bad_target))
+        if isinstance(target, Pair):
+            bad_target = target.first
+        else:
+            bad_target = target
+        raise SchemeError('不是符号（symbol）: {0}'.format(bad_target))
+
 
 def do_quote_form(expressions, env):
-    """Evaluate a quote form."""
+    """求值quote特殊形式。"""
     check_form(expressions, 1, 1)
-    # BEGIN PROBLEM 7
-    "*** YOUR CODE HERE ***"
-    # END PROBLEM 7
+    # *** 问题6开始 ***
+    '*** 在这里补充你的代码 ***'
+    return expressions.first
+    # *** 问题6结束 ***
+
 
 def do_begin_form(expressions, env):
-    """Evaluate a begin form."""
+    """求值begin特殊形式。"""
     check_form(expressions, 1)
     return eval_all(expressions, env)
 
+
 def do_lambda_form(expressions, env):
-    """Evaluate a lambda form."""
+    """求值lambda特殊形式。"""
     check_form(expressions, 2)
     formals = expressions.first
     check_formals(formals)
-    # BEGIN PROBLEM 9
-    "*** YOUR CODE HERE ***"
-    # END PROBLEM 9
+    # *** 问题7开始 ***
+    '*** 在这里补充你的代码 ***'
+    body = expressions.second
+    return LambdaProcedure(formals, body, env)
+    # *** 问题7结束 ***
+
 
 def do_if_form(expressions, env):
-    """Evaluate an if form."""
+    """求值if特殊形式。"""
     check_form(expressions, 2, 3)
     if scheme_truep(scheme_eval(expressions.first, env)):
         return scheme_eval(expressions.second.first, env)
@@ -273,19 +295,21 @@ def do_if_form(expressions, env):
         return scheme_eval(expressions.second.second.first, env)
 
 def do_and_form(expressions, env):
-    """Evaluate a (short-circuited) and form."""
-    # BEGIN PROBLEM 13
-    "*** YOUR CODE HERE ***"
-    # END PROBLEM 13
+    """求值and特殊形式。"""
+    # *** 问题开始 ***
+    '*** 在这里补充你的代码 ***'
+    # *** 问题结束 ***
+
 
 def do_or_form(expressions, env):
-    """Evaluate a (short-circuited) or form."""
-    # BEGIN PROBLEM 13
-    "*** YOUR CODE HERE ***"
-    # END PROBLEM 13
+    """求值or特殊形式。"""
+    # *** 问题开始 ***
+    '*** 在这里补充你的代码 ***'
+    # *** 问题结束 ***
+
 
 def do_cond_form(expressions, env):
-    """Evaluate a cond form."""
+    """求值cond特殊形式。"""
     while expressions is not nil:
         clause = expressions.first
         check_form(clause, 1)
@@ -296,16 +320,18 @@ def do_cond_form(expressions, env):
         else:
             test = scheme_eval(clause.first, env)
         if scheme_truep(test):
-            # BEGIN PROBLEM 14
-            "*** YOUR CODE HERE ***"
-            # END PROBLEM 14
+            # *** 问题开始 ***
+            '*** 在这里补充你的代码 ***'
+            # *** 问题结束 ***
         expressions = expressions.second
 
+
 def do_let_form(expressions, env):
-    """Evaluate a let form."""
+    """求值let特殊形式。"""
     check_form(expressions, 2)
     let_env = make_let_frame(expressions.first, env)
     return eval_all(expressions.second, let_env)
+
 
 def make_let_frame(bindings, env):
     """Create a child frame of ENV that contains the definitions given in
@@ -314,9 +340,9 @@ def make_let_frame(bindings, env):
     and a Scheme expression."""
     if not scheme_listp(bindings):
         raise SchemeError('bad bindings list in let form')
-    # BEGIN PROBLEM 15
-    "*** YOUR CODE HERE ***"
-    # END PROBLEM 15
+    # *** 问题开始 ***
+    '*** 在这里补充你的代码 ***'
+    # *** 问题结束 ***
 
 
 SPECIAL_FORMS = {
@@ -331,52 +357,46 @@ SPECIAL_FORMS = {
     'quote': do_quote_form
 }
 
-# Utility methods for checking the structure of Scheme programs
 
 def check_form(expr, min, max=float('inf')):
-    """Check EXPR is a proper list whose length is at least MIN and no more
-    than MAX (default: no maximum). Raises a SchemeError if this is not the
-    case.
+    """检查expr，确保expr是一个Scheme列表，并且列表长度在min和max之间。
 
-    >>> check_form(read_line('(a b)'), 2)
+    如果没有通过检查，抛出SchemeError。
     """
     if not scheme_listp(expr):
-        raise SchemeError('badly formed expression: ' + str(expr))
+        raise SchemeError('无效的表达式：' + str(expr))
     length = len(expr)
     if length < min:
-        raise SchemeError('too few operands in form')
+        raise SchemeError('表达式的参数个数过少')
     elif length > max:
-        raise SchemeError('too many operands in form')
+        raise SchemeError('表达式的参数个数过多')
+
 
 def check_formals(formals):
-    """Check that FORMALS is a valid parameter list, a Scheme list of symbols
-    in which each symbol is distinct. Raise a SchemeError if the list of
-    formals is not a well-formed list of symbols or if any symbol is repeated.
+    """检查formals，确保它是一个有效的形式参数列表。
 
-    >>> check_formals(read_line('(a b c)'))
+    一个有效的形式参数列表，是一个元素为符号（symbol）类型的Scheme列表。
+    其中，每一个符号都是不相同的。
+    如果没有通过检查，抛出SchemeError。
     """
     symbols = set()
     def check_and_add(symbol):
         if not scheme_symbolp(symbol):
-            raise SchemeError('non-symbol: {0}'.format(symbol))
+            raise SchemeError('不是一个符号（symbol）: {0}'.format(symbol))
         if symbol in symbols:
-            raise SchemeError('duplicate symbol: {0}'.format(symbol))
+            raise SchemeError('重复的符号（symbol）: {0}'.format(symbol))
         symbols.add(symbol)
 
     while isinstance(formals, Pair):
         check_and_add(formals.first)
         formals = formals.second
 
+
 def check_procedure(procedure):
     """检查确保procedure是一个有效的Scheme过程。"""
     if not scheme_procedurep(procedure):
         raise SchemeError('{0} is not callable: {1}'.format(
             type(procedure).__name__.lower(), str(procedure)))
-
-
-####################
-# Extra Procedures #
-####################
 
 
 def scheme_map(fn, lst, env):
@@ -411,9 +431,10 @@ def scheme_reduce(fn, lst, env):
         lst = lst.second
     return value
 
+
 # 读取-求值-打印 循环
 def read_eval_print_loop(next_buffer, env, interactive=False):
-    """Read and evaluate input until an end of file or keyboard interrupt."""
+    """读取表达式并求值，直到文件结束或者键盘中断。"""
     while True:
         try:
             src = next_buffer()

@@ -110,9 +110,11 @@ def scheme_read(src_buf):
         return read_tail(src_buf)
         # *** 问题1结束 ***
     elif val == "'":
-        # *** 问题2开始 ***
+        # *** 问题6开始 ***
         '*** 在这里补充你的代码 ***'
-        # *** 问题2结束 ***
+        exp = scheme_read(src_buf)
+        return Pair("quote", Pair(exp, nil))
+        # *** 问题6结束 ***
     elif val not in DELIMITERS:
         return val
     else:
@@ -134,9 +136,7 @@ def read_tail(src_buf):
         elif src_buf.current() == ')':
             src_buf.remove_front()
             return nil
-        elif src_buf.current() == '.': # 准备删除该分支
-            # *** 问题开始 ***
-            '*** 在这里补充你的代码 ***'
+        elif src_buf.current() == '.':
             src_buf.remove_front()
             second = scheme_read(src_buf)
             if src_buf.current() == ')':
@@ -144,7 +144,6 @@ def read_tail(src_buf):
                 return second
             else:
                 raise SyntaxError('无效的pair表达式')
-            # *** 问题结束 ***
         else:
             # *** 问题1开始 ***
             '*** 在这里补充你的代码 ***'
