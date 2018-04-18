@@ -51,9 +51,17 @@ def scheme_apply(procedure, args, env):
 
 def eval_all(expressions, env):
     """在环境env中求值expressions列表的每一个表达式，并返回最后一个表达式的值。"""
-    # BEGIN PROBLEM 8
-    return scheme_eval(expressions.first, env)
-    # END PROBLEM 8
+    # *** 问题10开始 ***
+    '*** 修改下面的代码 ***'
+    # return scheme_eval(expressions.first, env)
+    rest = expressions
+    result = None
+    while rest != nil:
+        exp = rest.first
+        result = scheme_eval(exp, env)
+        rest = rest.second
+    return result
+    # *** 问题10结束 ***
 
 
 class Frame:
@@ -187,7 +195,7 @@ class PrimitiveProcedure(Procedure):
 
 
 class LambdaProcedure(Procedure):
-    """lambda表达式或define特殊形式定义的函数过程。"""
+    """用户自定义的函数过程。"""
 
     def __init__(self, formals, body, env):
         """
@@ -207,11 +215,13 @@ class LambdaProcedure(Procedure):
         return eval_all(self.body, new_env)
 
     def make_call_frame(self, args, env):
-        """Make a frame that binds my formal parameters to ARGS, a Scheme list
-        of values, for a lexically-scoped call evaluated in environment ENV."""
-        # BEGIN PROBLEM 12
-        "*** YOUR CODE HERE ***"
-        # END PROBLEM 12
+        """创建一个新的Frame，从而构成新的环境，用于本次函数应用。
+
+        同时，在新的环境的Frame中，将函数的形式参数绑定到对应的实际参数上。"""
+        # *** 问题9开始 ***
+        '*** 在这里补充你的代码 ***'
+        return env.make_child_frame(self.formals, args)
+        # *** 问题9结束 ***
 
     def __str__(self):
         return str(Pair('lambda', Pair(self.formals, self.body)))
@@ -222,9 +232,6 @@ class LambdaProcedure(Procedure):
 
 
 def add_primitives(frame, funcs_and_names):
-    """Enter bindings in FUNCS_AND_NAMES into FRAME, an environment frame,
-    as primitive procedures. Each item in FUNCS_AND_NAMES has the form
-    (NAME, PYTHON-FUNCTION, INTERNAL-NAME)."""
     for name, fn, proc_name in funcs_and_names:
         frame.define(name, PrimitiveProcedure(fn, name=proc_name))
 
@@ -248,9 +255,9 @@ def do_define_form(expressions, env):
         return target
         # *** 问题5结束 ***
     elif isinstance(target, Pair) and scheme_symbolp(target.first):
-        # BEGIN PROBLEM 10
-        "*** YOUR CODE HERE ***"
-        # END PROBLEM 10
+        # *** 问题开始 ***
+        '*** 在这里补充你的代码 ***'
+        # *** 问题结束 ***
     else:
         if isinstance(target, Pair):
             bad_target = target.first
@@ -294,6 +301,7 @@ def do_if_form(expressions, env):
     elif len(expressions) == 3:
         return scheme_eval(expressions.second.second.first, env)
 
+
 def do_and_form(expressions, env):
     """求值and特殊形式。"""
     # *** 问题开始 ***
@@ -334,10 +342,6 @@ def do_let_form(expressions, env):
 
 
 def make_let_frame(bindings, env):
-    """Create a child frame of ENV that contains the definitions given in
-    BINDINGS. The Scheme list BINDINGS must have the form of a proper bindings
-    list in a let expression: each item must be a list containing a symbol
-    and a Scheme expression."""
     if not scheme_listp(bindings):
         raise SchemeError('bad bindings list in let form')
     # *** 问题开始 ***
