@@ -3,7 +3,7 @@
 """该模块提供了一个用于解析计算器表达式的parser。"""
 
 from sugon.edu.calc_tokens import tokenize_lines, DELIMITERS
-from sugon.edu.calc_buffer import Buffer, InputReader, LineReader
+from sugon.edu.calc_buffer import Buffer, InputReader
 
 
 class Nil:
@@ -161,4 +161,3 @@ def read_print_loop():
 
 if __name__ == '__main__':
     read_print_loop()
-
